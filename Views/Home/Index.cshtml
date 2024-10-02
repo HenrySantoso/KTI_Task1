@@ -1,0 +1,15 @@
+﻿@{
+    
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome, @ViewBag.username</h1>
+    <h2>Secure Coding with ASP.NET MVC! </h2>
+    <p>Fun!</p>
+    <ul>Fruits : 
+        @foreach(var fruit in ViewBag.fruits)
+        {
+            <li>@fruit</li>
+        }
+    </ul>
+</div>
