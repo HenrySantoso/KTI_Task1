@@ -1,0 +1,19 @@
+﻿@model IEnumerable<SampleSecureWeb.Models.User>
+
+<h1>Users</h1>
+
+<table class ="table table-striped">
+    <tr>
+        <td>Username</td>
+        <td>Password</td>
+        <td>RoleName</td>
+    </tr>
+    @foreach(var item in Model)
+    {
+        <tr>
+            <td>@item.Username</td>
+            <td>@item.Password</td>
+            <td>@item.RoleName</td>
+        </tr>
+    }
+</table>
