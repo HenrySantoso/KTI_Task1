@@ -15,7 +15,7 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        ViewBag.username= "Henry Yohanes Santoso!";
+        ViewBag.username= User.Identity.Name;
         string[] fruits = new string[]  {"Banana", "Apple", "Orange"};
         ViewBag.fruits = fruits;
         return View();
