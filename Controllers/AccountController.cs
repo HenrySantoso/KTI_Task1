@@ -31,73 +31,79 @@ namespace SampleSecureWeb.Controllers
             return View();
         }
 
-            [HttpPost]
+        [HttpPost]
         public IActionResult Register(RegistrationViewModel registrationViewModel)
-{
-    try
-    {
-        if (ModelState.IsValid)
         {
-            if (!IsValidPassword(registrationViewModel.Password))
+            try
             {
-                // Menambahkan pesan kesalahan pada ModelState
-                ModelState.AddModelError("Password", "Password harus minimal 12 karakter dan mengandung huruf besar, huruf kecil, dan angka.");
-                return View(registrationViewModel); // Kembali ke view jika password tidak valid
+                if (ModelState.IsValid)
+                {
+                    if (!IsValidPassword(registrationViewModel.Password))
+                    {
+                        // Menambahkan pesan kesalahan pada ModelState
+                        ModelState.AddModelError(
+                            "Password",
+                            "Password harus minimal 12 karakter dan mengandung huruf besar, huruf kecil, dan angka."
+                        );
+                        return View(registrationViewModel); // Kembali ke view jika password tidak valid
+                    }
+
+                    var user = new User
+                    {
+                        Username = registrationViewModel.Username,
+                        Password = registrationViewModel.Password,
+                        RoleName = "contributor"
+                    };
+
+                    _userData.Registration(user);
+                    return RedirectToAction("Index");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                ViewBag.Error = ex.Message;
             }
 
-            var user = new User
-            {
-                Username = registrationViewModel.Username,
-                Password = registrationViewModel.Password,
-                RoleName = "contributor"
-            };
-
-            _userData.Registration(user);
-            return RedirectToAction("Index");
+            return View(registrationViewModel);
         }
-    }
-    catch (System.Exception ex)
-    {
-        ViewBag.Error = ex.Message;
-    }
 
-    return View(registrationViewModel);
-}
+        public ActionResult Login()
+        {
+            return View();
+        }
 
+        [HttpPost]
         public async Task<ActionResult> Login(LoginViewModel loginViewModel)
         {
             try
             {
-                    var user = new User
-                    {
-                        Username = loginViewModel.Username,
-                        Password = loginViewModel.Password
-                    };
-                    
-                    var loginUser = _userData.Login(user);
-                    if(loginUser == null)
-                    {
-                        ViewBag.Message = "Invalid login attempt";
-                        return View(loginViewModel);
-                    }
+                var user = new User
+                {
+                    Username = loginViewModel.Username,
+                    Password = loginViewModel.Password
+                };
 
-                    var claims = new List<Claim>
-                    {
-                        new Claim(ClaimTypes.Name, user.Username)
-                    };
+                var loginUser = _userData.Login(user);
+                if (loginUser == null)
+                {
+                    ViewBag.Message = "Invalid login attempt";
+                    return View(loginViewModel);
+                }
 
-                    var identity = new ClaimsIdentity(claims,CookieAuthenticationDefaults.AuthenticationScheme);
-                    var principal = new ClaimsPrincipal(identity);
+                var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Username) };
 
-                    await HttpContext.SignInAsync(
-                        CookieAuthenticationDefaults.AuthenticationScheme, 
-                        principal,
-                        new AuthenticationProperties
-                        {
-                            IsPersistent = loginViewModel.RememberLogin
-                        }
-                    );
-                    return RedirectToAction("Index", "Home");
+                var identity = new ClaimsIdentity(
+                    claims,
+                    CookieAuthenticationDefaults.AuthenticationScheme
+                );
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(
+                    CookieAuthenticationDefaults.AuthenticationScheme,
+                    principal,
+                    new AuthenticationProperties { IsPersistent = loginViewModel.RememberLogin }
+                );
+                return RedirectToAction("Index", "Home");
             }
             catch (System.Exception ex)
             {
@@ -105,7 +111,44 @@ namespace SampleSecureWeb.Controllers
             }
             return View(loginViewModel);
         }
-        
+
+        public ActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ChangePassword(ChangePasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var user = _userData.GetUserByUsername(model.Username);
+            if (user == null)
+            {
+                ModelState.AddModelError("", "User not found");
+                return View(model);
+            }
+
+            // Verify old password
+            if (!BCrypt.Net.BCrypt.Verify(model.OldPassword, user.Password))
+            {
+                ModelState.AddModelError("", "Old password is incorrect");
+                return View(model);
+            }
+
+            // Update password
+            user.Password = BCrypt.Net.BCrypt.HashPassword(model.NewPassword);
+            _userData.UpdatePassword(user);
+
+            ViewBag.Message = "Password changed successfully. Please login again.";
+            ViewBag.ShowLoginButton = true; // Tampilkan tombol login setelah password berhasil diubah
+
+            return View();
+        }
+
         private bool IsValidPassword(string password)
         {
             // Password harus minimal 12 karakter, mengandung huruf besar, huruf kecil, dan angka
