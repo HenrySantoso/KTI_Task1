@@ -125,3 +125,4 @@ D:\Kuliah\Semester 5\KTI\SampleSecureWeb\bin\Debug\net8.0\runtimes\win-arm\nativ
 D:\Kuliah\Semester 5\KTI\SampleSecureWeb\bin\Debug\net8.0\runtimes\win-arm64\native\e_sqlite3.dll
 D:\Kuliah\Semester 5\KTI\SampleSecureWeb\bin\Debug\net8.0\runtimes\win-x64\native\e_sqlite3.dll
 D:\Kuliah\Semester 5\KTI\SampleSecureWeb\bin\Debug\net8.0\runtimes\win-x86\native\e_sqlite3.dll
+D:\Kuliah\Semester 5\KTI\SampleSecureWeb\obj\Debug\net8.0\SampleSecureWeb.sourcelink.json
