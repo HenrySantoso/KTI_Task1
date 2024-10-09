@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -32,27 +33,36 @@ namespace SampleSecureWeb.Controllers
 
             [HttpPost]
         public IActionResult Register(RegistrationViewModel registrationViewModel)
+{
+    try
+    {
+        if (ModelState.IsValid)
         {
-            try
+            if (!IsValidPassword(registrationViewModel.Password))
             {
-                if(ModelState.IsValid)
-                {
-                    var user = new User
-                    {
-                        Username = registrationViewModel.Username,
-                        Password = registrationViewModel.Password,
-                        RoleName = "contributor"
-                    };
-                    _userData.Registration(user);
-                    return RedirectToAction("Index", "Home");
-                }
+                // Menambahkan pesan kesalahan pada ModelState
+                ModelState.AddModelError("Password", "Password harus minimal 12 karakter dan mengandung huruf besar, huruf kecil, dan angka.");
+                return View(registrationViewModel); // Kembali ke view jika password tidak valid
             }
-            catch (System.Exception ex)
+
+            var user = new User
             {
-                ViewBag.Error = ex.Message;
-            }
-            return View(registrationViewModel);
+                Username = registrationViewModel.Username,
+                Password = registrationViewModel.Password,
+                RoleName = "contributor"
+            };
+
+            _userData.Registration(user);
+            return RedirectToAction("Index");
         }
+    }
+    catch (System.Exception ex)
+    {
+        ViewBag.Error = ex.Message;
+    }
+
+    return View(registrationViewModel);
+}
 
         public async Task<ActionResult> Login(LoginViewModel loginViewModel)
         {
@@ -94,6 +104,13 @@ namespace SampleSecureWeb.Controllers
                 ViewBag.Error = ex.Message;
             }
             return View(loginViewModel);
+        }
+        
+        private bool IsValidPassword(string password)
+        {
+            // Password harus minimal 12 karakter, mengandung huruf besar, huruf kecil, dan angka
+            var regex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{12,}$");
+            return regex.IsMatch(password);
         }
     }
 }
